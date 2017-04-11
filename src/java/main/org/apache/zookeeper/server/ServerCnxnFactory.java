@@ -136,7 +136,7 @@ public abstract class ServerCnxnFactory {
     private final Map<ServerCnxn, ConnectionBean> connectionBeans
         = new ConcurrentHashMap<ServerCnxn, ConnectionBean>();
 
-    protected final HashSet<ServerCnxn> cnxns = new HashSet<ServerCnxn>();
+    protected final HashSet<ServerCnxn> cnxns = new HashSet<ServerCnxn>();/**保存已经的连接*/
     public void unregisterConnection(ServerCnxn serverCnxn) {
         ConnectionBean jmxConnectionBean = connectionBeans.remove(serverCnxn);
         if (jmxConnectionBean != null){
