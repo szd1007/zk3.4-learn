@@ -87,7 +87,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
     protected DataTreeBean jmxDataTreeBean;
 
  
-    /**
+    /** 这个用专门的接口来声明Builder，有啥好处呢？方便底层类实现不同接口？
      * The server delegates loading of the tree to an instance of the interface
      */
     public interface DataTreeBuilder {
@@ -99,7 +99,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
             return new DataTree();
         }
     }
-
+    /**这个是为了做啥，防止泄露引用，更改这个值？*/
     public static final int DEFAULT_TICK_TIME = 3000;
     protected int tickTime = DEFAULT_TICK_TIME;
     /** value of -1 indicates unset, use default */

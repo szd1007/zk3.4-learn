@@ -58,7 +58,7 @@ public class WatchManager {
             // don't waste memory if there are few watches on a node
             // rehash when the 4th entry is added, doubling size thereafter
             // seems like a good compromise
-            list = new HashSet<Watcher>(4);
+            list = new HashSet<Watcher>(4);/**initial 4  loadFactory 0.75  保证前三个添加过程不重hash*/
             watchTable.put(path, list);
         }
         list.add(watcher);
