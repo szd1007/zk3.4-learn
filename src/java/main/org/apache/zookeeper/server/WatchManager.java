@@ -63,7 +63,7 @@ public class WatchManager {
         }
         list.add(watcher);
 
-        HashSet<String> paths = watch2Paths.get(watcher);
+        HashSet<String> paths = watch2Paths.get(watcher);/**只能取同一个对象引用*/
         if (paths == null) {
             // cnxns typically have many watches, so use default cap here
             paths = new HashSet<String>();
@@ -87,7 +87,7 @@ public class WatchManager {
             }
         }
     }
-
+    /**触发watch状态变动，通过sokcet rpc调用通知客户端*/
     public Set<Watcher> triggerWatch(String path, EventType type) {
         return triggerWatch(path, type, null);
     }
@@ -117,7 +117,7 @@ public class WatchManager {
             if (supress != null && supress.contains(w)) {
                 continue;
             }
-            w.process(e);
+            w.process(e);/**调用具体的方法，nio或者netty实现的rpc调用*/
         }
         return watchers;
     }
