@@ -215,11 +215,11 @@ public class DataTree {
         nodes.put(rootZookeeper, root);
 
         /** add the proc node and quota node */
-        root.addChild(procChildZookeeper);
+        root.addChild(procChildZookeeper); /**添加zookeeper节点名称*/
         nodes.put(procZookeeper, procDataNode);
 
-        procDataNode.addChild(quotaChildZookeeper);
-        nodes.put(quotaZookeeper, quotaDataNode);
+        procDataNode.addChild(quotaChildZookeeper);/**添加quota节点*/
+        nodes.put(quotaZookeeper, quotaDataNode);/**nodes 中存储的是全路径名称  /zookeeper/quota */
     }
 
     /**
