@@ -50,7 +50,7 @@ import org.apache.zookeeper.server.quorum.QuorumPacket;
 import org.apache.zookeeper.server.util.SerializeUtils;
 import org.apache.zookeeper.txn.TxnHeader;
 
-/**
+/**  zk 内存数据库。
  * This class maintains the in memory database of zookeeper
  * server states that includes the sessions, datatree and the
  * committed logs. It is booted up  after reading the logs

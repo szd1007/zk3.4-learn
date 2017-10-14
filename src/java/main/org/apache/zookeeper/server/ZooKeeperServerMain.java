@@ -31,7 +31,7 @@ import org.apache.zookeeper.server.persistence.FileTxnSnapLog;
 import org.apache.zookeeper.server.quorum.QuorumPeerConfig.ConfigException;
 
 /**
- * This class starts and runs a standalone ZooKeeperServer.单机版运行实例
+ * This class starts and runs a standalone ZooKeeperServer.单机版Server运行实例
  */
 public class ZooKeeperServerMain {
     private static final Logger LOG =

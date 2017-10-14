@@ -106,7 +106,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
     protected int minSessionTimeout = -1;
     /** value of -1 indicates unset, use default */
     protected int maxSessionTimeout = -1;
-    protected SessionTracker sessionTracker;
+    protected SessionTracker sessionTracker;/**面向接口编程*/
     private FileTxnSnapLog txnLogFactory = null;
     private ZKDatabase zkDb;
     private final AtomicLong hzxid = new AtomicLong(0);

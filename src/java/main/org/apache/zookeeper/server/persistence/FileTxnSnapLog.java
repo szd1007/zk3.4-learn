@@ -52,7 +52,7 @@ public class FileTxnSnapLog {
     //the snapshot directory
     private final File snapDir;
     private TxnLog txnLog;
-    private SnapShot snapLog;
+    private SnapShot snapLog;/**面向接口编程,抽象接口*/
     public final static int VERSION = 2;
     public final static String version = "version-";
     
