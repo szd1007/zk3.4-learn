@@ -62,7 +62,7 @@ public class NIOServerCnxn extends ServerCnxn {
 
     final SocketChannel sock;
 
-    protected final SelectionKey sk;
+    protected final SelectionKey sk;//对应每个socket连接
 
     boolean initialized;
 
