@@ -267,7 +267,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
          * Consequently, we don't need to initialize it once more
          * and avoid the penalty of loading it a second time. Not 
          * reloading it is particularly important for applications
-         * that host a large database.
+         * that host a large database.                            |防止重新初始化数据库带来性能损耗
          * 
          * The following if block checks whether the database has
          * been initialized or not. Note that this method is
