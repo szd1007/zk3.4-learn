@@ -904,7 +904,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
             throw new CloseRequestException(msg);
         }
         if (connReq.getLastZxidSeen() > zkDb.dataTree.lastProcessedZxid) {
-            String msg = "Refusing session request for client "
+            String msg = "Refusing session request for client "//当前server的processId低于客户端请求，不提供服务
                 + cnxn.getRemoteSocketAddress()
                 + " as it has seen zxid 0x"
                 + Long.toHexString(connReq.getLastZxidSeen())
@@ -930,7 +930,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         // session is setup
         cnxn.disableRecv();
         long sessionId = connReq.getSessionId();
-        if (sessionId != 0) {
+        if (sessionId != 0) {                  // 每次连接先关闭之前的client连接
             long clientSessionId = connReq.getSessionId();
             LOG.info("Client attempting to renew session 0x"
                     + Long.toHexString(clientSessionId)
@@ -953,7 +953,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
     }
 
     public void processPacket(ServerCnxn cnxn, ByteBuffer incomingBuffer) throws IOException {
-        // We have the request, now process and setup for next
+        // We have the request, now process and setup for next  这个和上面的方法一样，已经完成所有数据的接收
         InputStream bais = new ByteBufferInputStream(incomingBuffer);
         BinaryInputArchive bia = BinaryInputArchive.getArchive(bais);
         RequestHeader h = new RequestHeader();
@@ -1013,7 +1013,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
                 Request si = new Request(cnxn, cnxn.getSessionId(), h.getXid(),
                   h.getType(), incomingBuffer, cnxn.getAuthInfo());
                 si.setOwner(ServerCnxn.me);
-                submitRequest(si);
+                submitRequest(si);//处理真正的请求
             }
         }
         cnxn.incrOutstandingRequests(h);
