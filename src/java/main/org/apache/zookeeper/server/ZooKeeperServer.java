@@ -423,7 +423,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         setState(State.RUNNING);
         notifyAll();
     }
-
+    //PrepRequestProcessor-->SyncRequestProcessor-->FinalRequestProcessor  单机版的处理顺序
     protected void setupRequestProcessors() {
         RequestProcessor finalProcessor = new FinalRequestProcessor(this);
         RequestProcessor syncProcessor = new SyncRequestProcessor(this,
@@ -641,7 +641,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
 
     public void reopenSession(ServerCnxn cnxn, long sessionId, byte[] passwd,
             int sessionTimeout) throws IOException {
-        if (!checkPasswd(sessionId, passwd)) {
+        if (!checkPasswd(sessionId, passwd)) { //密码验证不通过
             finishSessionInit(cnxn, false);
         } else {
             revalidateSession(cnxn, sessionId, sessionTimeout);
@@ -665,7 +665,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
                             valid ? generatePasswd(cnxn.getSessionId()) : new byte[16]);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             BinaryOutputArchive bos = BinaryOutputArchive.getArchive(baos);
-            bos.writeInt(-1, "len");
+            bos.writeInt(-1, "len");//后面bytebuffer 会重置这个值
             rsp.serialize(bos, "connect");
             if (!cnxn.isOldClient) {
                 bos.writeBool(
@@ -709,7 +709,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
     /**
      * @param cnxn
      * @param sessionId
-     * @param xid
+     * @param xid   从0 开始
      * @param bb
      */
     private void submitRequest(ServerCnxn cnxn, long sessionId, int type,
@@ -903,7 +903,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
             LOG.info(msg);
             throw new CloseRequestException(msg);
         }
-        if (connReq.getLastZxidSeen() > zkDb.dataTree.lastProcessedZxid) {
+        if (connReq.getLastZxidSeen() > zkDb.dataTree.lastProcessedZxid) { //第一次请求的话zxidSeen这个应该是个默认值
             String msg = "Refusing session request for client "//当前server的processId低于客户端请求，不提供服务
                 + cnxn.getRemoteSocketAddress()
                 + " as it has seen zxid 0x"
@@ -941,7 +941,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         } else {
             LOG.info("Client attempting to establish new session at "
                     + cnxn.getRemoteSocketAddress());
-            createSession(cnxn, passwd, sessionTimeout);
+            createSession(cnxn, passwd, sessionTimeout);//首次建立session的处理流程
         }
     }
 

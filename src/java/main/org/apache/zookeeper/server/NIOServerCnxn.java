@@ -60,13 +60,13 @@ public class NIOServerCnxn extends ServerCnxn {
 
     NIOServerCnxnFactory factory;
 
-    final SocketChannel sock;
+    final SocketChannel sock; //socket连接通道
 
-    protected final SelectionKey sk;//对应每个socket连接
+    protected final SelectionKey sk;//对应每个socket
 
     boolean initialized;
 
-    ByteBuffer lenBuffer = ByteBuffer.allocate(4);
+    ByteBuffer lenBuffer = ByteBuffer.allocate(4);//存放传输数据的size
 
     ByteBuffer incomingBuffer = lenBuffer;
 
@@ -96,7 +96,7 @@ public class NIOServerCnxn extends ServerCnxn {
         this.sock = sock;
         this.sk = sk;
         this.factory = factory;
-        if (this.factory.login != null) {
+        if (this.factory.login != null) {//sasl认证相关，忽略
             this.zooKeeperSaslServer = new ZooKeeperSaslServer(factory.login);
         }
         if (zk != null) { 
@@ -165,9 +165,9 @@ public class NIOServerCnxn extends ServerCnxn {
             if(sk.isValid() &&
                     ((sk.interestOps() & SelectionKey.OP_WRITE) == 0)) {
                 try {
-                    sock.write(bb);
+                    sock.write(bb);//针对小数据量的情况，如果当前没有数据积压（socket上没有注册写事件），那么直接发送
                 } catch (IOException e) {
-                    // we are just doing best effort right now
+                    // we are just doing best effort right now| 如果抛异常，那么不管
                 }
             }
             // if there is nothing left to send, we are done
@@ -185,14 +185,14 @@ public class NIOServerCnxn extends ServerCnxn {
             }
             outgoingBuffers.add(bb);
             if (sk.isValid()) {
-                sk.interestOps(sk.interestOps() | SelectionKey.OP_WRITE);
+                sk.interestOps(sk.interestOps() | SelectionKey.OP_WRITE);//由selector完成后续数据发送
             }
         }
     }
 
     /** Read the request payload (everything following the length prefix) */
     private void readPayload() throws IOException, InterruptedException {
-        if (incomingBuffer.remaining() != 0) { // have we read length bytes?
+        if (incomingBuffer.remaining() != 0) { // have we read length bytes? |selector接收
             int rc = sock.read(incomingBuffer); // sock is non-blocking, so ok
             if (rc < 0) {
                 throw new EndOfStreamException(
@@ -202,11 +202,11 @@ public class NIOServerCnxn extends ServerCnxn {
             }
         }
 
-        if (incomingBuffer.remaining() == 0) { // have we read length bytes?
+        if (incomingBuffer.remaining() == 0) { // have we read length bytes? | 本次数据接收完成
             packetReceived();
             incomingBuffer.flip();
             if (!initialized) {
-                readConnectRequest();
+                readConnectRequest(); //首次请求，进行connect请求
             } else {
                 readRequest();
             }
@@ -223,7 +223,7 @@ public class NIOServerCnxn extends ServerCnxn {
     }
 
     /**
-     * Handles read/write IO on connection.
+     * Handles read/write IO on connection. |具体的IO处理逻辑，处理读写请求。 具体的accept事件放在了server中
      */
     void doIO(SelectionKey k) throws InterruptedException {
         try {
@@ -243,9 +243,9 @@ public class NIOServerCnxn extends ServerCnxn {
                 }
                 if (incomingBuffer.remaining() == 0) {
                     boolean isPayload;
-                    if (incomingBuffer == lenBuffer) { // start of next request
+                    if (incomingBuffer == lenBuffer) { // start of next request  | 接收到指定帧大小的数据
                         incomingBuffer.flip();
-                        isPayload = readLength(k);
+                        isPayload = readLength(k);//这个4字节的内容可能是发送的命令。如果两个串了怎么办？
                         incomingBuffer.clear();
                     } else {
                         // continuation
@@ -967,7 +967,7 @@ public class NIOServerCnxn extends ServerCnxn {
         if (!isZKServerRunning()) {
             throw new IOException("ZooKeeperServer not running");
         }
-        incomingBuffer = ByteBuffer.allocate(len);
+        incomingBuffer = ByteBuffer.allocate(len); // 分配指定大小的数据帧
         return true;
     }
 
