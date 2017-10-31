@@ -53,7 +53,7 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory implements Runnable 
 
     ServerSocketChannel ss;
 
-    final Selector selector = Selector.open();
+    final Selector selector = Selector.open();  //只有一个selector 处理所有事件
 
     /**
      * We use this buffer to do efficient socket I/O. Since there is a single
@@ -62,7 +62,7 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory implements Runnable 
     */
     final ByteBuffer directBuffer = ByteBuffer.allocateDirect(64 * 1024);
 
-    final HashMap<InetAddress, Set<NIOServerCnxn>> ipMap =
+    final HashMap<InetAddress, Set<NIOServerCnxn>> ipMap =  //一个ip能有多个socket连接
         new HashMap<InetAddress, Set<NIOServerCnxn>>( );
 
     int maxClientCnxns = 60;
@@ -89,7 +89,7 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory implements Runnable 
         LOG.info("binding to port " + addr);
         ss.socket().bind(addr);
         ss.configureBlocking(false);
-        ss.register(selector, SelectionKey.OP_ACCEPT);
+        ss.register(selector, SelectionKey.OP_ACCEPT); // 接收请求
     }
 
     /** {@inheritDoc} */
@@ -166,7 +166,7 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory implements Runnable 
             return s.size();
         }
     }
-
+    //selector  处理线程  顺序处理，没有使用多线程
     public void run() {
         while (!ss.socket().isClosed()) {
             try {
@@ -181,10 +181,10 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory implements Runnable 
                 for (SelectionKey k : selectedList) {
                     if ((k.readyOps() & SelectionKey.OP_ACCEPT) != 0) {
                         SocketChannel sc = ((ServerSocketChannel) k
-                                .channel()).accept();
+                                .channel()).accept();//获取serverSocket对象
                         InetAddress ia = sc.socket().getInetAddress();
                         int cnxncount = getClientCnxnCount(ia);
-                        if (maxClientCnxns > 0 && cnxncount >= maxClientCnxns){
+                        if (maxClientCnxns > 0 && cnxncount >= maxClientCnxns){//最大连接限制
                             LOG.warn("Too many connections from " + ia
                                      + " - max is " + maxClientCnxns );
                             sc.close();
@@ -193,13 +193,13 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory implements Runnable 
                                      + sc.socket().getRemoteSocketAddress());
                             sc.configureBlocking(false);
                             SelectionKey sk = sc.register(selector,
-                                    SelectionKey.OP_READ);
+                                    SelectionKey.OP_READ);//注册读监听事件
                             NIOServerCnxn cnxn = createConnection(sc, sk);
-                            sk.attach(cnxn);
+                            sk.attach(cnxn);//绑定cnxn到对应selectionKey
                             addCnxn(cnxn);
                         }
                     } else if ((k.readyOps() & (SelectionKey.OP_READ | SelectionKey.OP_WRITE)) != 0) {
-                        NIOServerCnxn c = (NIOServerCnxn) k.attachment();
+                        NIOServerCnxn c = (NIOServerCnxn) k.attachment();//单线程顺序处理
                         c.doIO(k);
                     } else {
                         if (LOG.isDebugEnabled()) {

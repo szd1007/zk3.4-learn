@@ -717,7 +717,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         Request si = new Request(cnxn, sessionId, xid, type, bb, authInfo);
         submitRequest(si);
     }
-    
+    //PrepRequestProcessor-->SyncRequestProcessor-->FinalRequestProcessor  单机版的处理顺序 看完nioserver，再看具体逻辑
     public void submitRequest(Request si) {
         if (firstProcessor == null) {
             synchronized (this) {
