@@ -38,7 +38,7 @@ public class Request {
     private static final Logger LOG = LoggerFactory.getLogger(Request.class);
 
     public final static Request requestOfDeath = new Request(null, 0, 0, 0,
-            null, null);
+            null, null);//这个只有一个对象，所以引用也就只有一个
 
     /**
      * @param cnxn
@@ -59,7 +59,7 @@ public class Request {
 
     public final long sessionId;
 
-    public final int cxid;
+    public final int cxid;//createSession的时候，设置为0
 
     public final int type;
 

@@ -94,7 +94,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
      */
     private static  boolean failCreate = false;
 
-    LinkedBlockingQueue<Request> submittedRequests = new LinkedBlockingQueue<Request>();
+    LinkedBlockingQueue<Request> submittedRequests = new LinkedBlockingQueue<Request>();//起到阻塞等的作用
 
     RequestProcessor nextProcessor;
 
@@ -146,7 +146,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
     ChangeRecord getRecordForPath(String path) throws KeeperException.NoNodeException {
         ChangeRecord lastChange = null;
         synchronized (zks.outstandingChanges) {
-            lastChange = zks.outstandingChangesForPath.get(path);
+            lastChange = zks.outstandingChangesForPath.get(path);//这两个值貌似没有用到？紧紧当做锁来使用
             if (lastChange == null) {
                 DataNode n = zks.getZKDatabase().getNode(path);
                 if (n != null) {
@@ -309,7 +309,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
      * singleton, so there will be a single thread calling this code.
      *
      * @param type
-     * @param zxid
+     * @param zxid  全局唯一的id，zkServer中定义 atomicLong
      * @param request
      * @param record
      */
@@ -324,7 +324,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
             case OpCode.create:                
                 zks.sessionTracker.checkSession(request.sessionId, request.getOwner());
                 CreateRequest createRequest = (CreateRequest)record;   
-                if(deserialize)
+                if(deserialize)// 从request中解析请求数据
                     ByteBufferInputStream.byteBuffer2Record(request.request, createRequest);
                 String path = createRequest.getPath();
                 int lastSlash = path.lastIndexOf('/');
@@ -519,7 +519,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
 
     /**
      * This method will be called inside the ProcessRequestThread, which is a
-     * singleton, so there will be a single thread calling this code.
+     * singleton, so there will be a single thread calling this code.|  这个是单线程处理，里面的zxid啥啥的增长应该也是没问题的
      *
      * @param request
      */
@@ -672,7 +672,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
                 request.txn = new ErrorTxn(Code.MARSHALLINGERROR.intValue());
             }
         }
-        request.zxid = zks.getZxid();
+        request.zxid = zks.getZxid(); //这个记录了zxid，zookeeperSever维护，上文中有的进行了增1处理
         nextProcessor.processRequest(request);
     }
 

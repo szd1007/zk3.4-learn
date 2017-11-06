@@ -374,7 +374,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         }
         long id = cnxn.getSessionId();
         int to = cnxn.getSessionTimeout();
-        if (!sessionTracker.touchSession(id, to)) {
+        if (!sessionTracker.touchSession(id, to)) {//sessionTracker 只负责自己的事情，对外只暴露了接口。具体实现并没有展现
             throw new MissingSessionException(
                     "No session with sessionid 0x" + Long.toHexString(id)
                     + " exists, probably expired and removed");

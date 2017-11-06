@@ -28,7 +28,7 @@ public class ZooDefs {
     public interface OpCode {
         public final int notification = 0;
 
-        public final int create = 1;
+        public final int create = 1; //创建新节点
 
         public final int delete = 2;
 
