@@ -146,7 +146,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
     ChangeRecord getRecordForPath(String path) throws KeeperException.NoNodeException {
         ChangeRecord lastChange = null;
         synchronized (zks.outstandingChanges) {
-            lastChange = zks.outstandingChangesForPath.get(path);//这两个值貌似没有用到？紧紧当做锁来使用
+            lastChange = zks.outstandingChangesForPath.get(path);//存放processor中传递的 changeRecord
             if (lastChange == null) {
                 DataNode n = zks.getZKDatabase().getNode(path);
                 if (n != null) {
@@ -174,9 +174,9 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
     void addChangeRecord(ChangeRecord c) {
         synchronized (zks.outstandingChanges) {
             zks.outstandingChanges.add(c);
-            zks.outstandingChangesForPath.put(c.path, c);
-        }
-    }
+            zks.outstandingChangesForPath.put(c.path, c);//每个path 在一次请求中只能对应一个changeRecord。
+        }                                                // 在进入处理逻辑的时候，前面的请求就已经接收完成。并且处理过程是单线程的
+    }                                                    //所以在单个server上看，所有的zk更新工作就都是串行的。没有并发问题
 
     /**
      * Grab current pending change records for each op in a multi-op.
@@ -318,7 +318,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
         throws KeeperException, IOException, RequestProcessorException
     {
         request.hdr = new TxnHeader(request.sessionId, request.cxid, zxid,
-                                    zks.getTime(), type);
+                                    zks.getTime(), type); //sessionId 也就是clientId
 
         switch (type) {
             case OpCode.create:                
@@ -346,7 +346,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
                 CreateMode createMode =
                     CreateMode.fromFlag(createRequest.getFlags());
                 if (createMode.isSequential()) {
-                    path = path + String.format(Locale.ENGLISH, "%010d", parentCVersion);
+                    path = path + String.format(Locale.ENGLISH, "%010d", parentCVersion);//添加父节点的version信息
                 }
                 validatePath(path, request.sessionId);
                 try {
@@ -360,20 +360,20 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
                 if (ephemeralParent) {
                     throw new KeeperException.NoChildrenForEphemeralsException(path);
                 }
-                int newCversion = parentRecord.stat.getCversion()+1;
-                request.txn = new CreateTxn(path, createRequest.getData(),
+                int newCversion = parentRecord.stat.getCversion()+1;// parent  stat  cversion 每次会增加
+                request.txn = new CreateTxn(path, createRequest.getData(), //创建任务
                         listACL,
                         createMode.isEphemeral(), newCversion);
-                StatPersisted s = new StatPersisted();
+                StatPersisted s = new StatPersisted(); //给新创建的节点创建一个持久化stat 对象
                 if (createMode.isEphemeral()) {
                     s.setEphemeralOwner(request.sessionId);
                 }
-                parentRecord = parentRecord.duplicate(request.hdr.getZxid());
+                parentRecord = parentRecord.duplicate(request.hdr.getZxid());//zxid 全局唯一
                 parentRecord.childCount++;
                 parentRecord.stat.setCversion(newCversion);
-                addChangeRecord(parentRecord);
+                addChangeRecord(parentRecord);// 要更改parent path 放到全局变量中
                 addChangeRecord(new ChangeRecord(request.hdr.getZxid(), path, s,
-                        0, listACL));
+                        0, listACL));// 当前新创建节点的请求放到全局变量中。
                 break;
             case OpCode.delete:
                 zks.sessionTracker.checkSession(request.sessionId, request.getOwner());
@@ -453,8 +453,8 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
                 break;
             case OpCode.createSession:
                 request.request.rewind();
-                int to = request.request.getInt();
-                request.txn = new CreateSessionTxn(to);
+                int to = request.request.getInt();//存放的是timeout超时时间
+                request.txn = new CreateSessionTxn(to);//client首次连接处理逻辑
                 request.request.rewind();
                 zks.sessionTracker.addSession(request.sessionId, to);
                 zks.setOwner(request.sessionId, request.getOwner());
