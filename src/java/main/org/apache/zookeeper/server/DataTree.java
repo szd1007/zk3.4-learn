@@ -696,15 +696,15 @@ public class DataTree {
     }
 
     public volatile long lastProcessedZxid = 0;
-
+    //真正将client来的请求添加到内存数据库中
     public ProcessTxnResult processTxn(TxnHeader header, Record txn)
     {
         ProcessTxnResult rc = new ProcessTxnResult();
 
         try {
             rc.clientId = header.getClientId();
-            rc.cxid = header.getCxid();
-            rc.zxid = header.getZxid();
+            rc.cxid = header.getCxid();//client 相关， 从client中取
+            rc.zxid = header.getZxid();//全局唯一,事务id
             rc.type = header.getType();
             rc.err = 0;
             rc.multiResult = null;

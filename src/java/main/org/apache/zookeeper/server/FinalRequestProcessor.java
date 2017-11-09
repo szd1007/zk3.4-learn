@@ -108,19 +108,19 @@ public class FinalRequestProcessor implements RequestProcessor {
                 if (zks.outstandingChangesForPath.get(cr.path) == cr) {
                     zks.outstandingChangesForPath.remove(cr.path);
                 }
-            }
+            }//移除比当前请求zxid小的request。如果打印了warn说明比当前请求zxid还小的请求没有被正确处理
             if (request.hdr != null) {
-               TxnHeader hdr = request.hdr;
-               Record txn = request.txn;
+               TxnHeader hdr = request.hdr;//包含opcode
+               Record txn = request.txn;//对应具体的请求
 
-               rc = zks.processTxn(hdr, txn);
+               rc = zks.processTxn(hdr, txn);//更新zk  dataTree中path信息
             }
             // do not add non quorum packets to the queue.
             if (Request.isQuorum(request.type)) {
                 zks.getZKDatabase().addCommittedProposal(request);
             }
         }
-
+        //此次请求的client请求关闭本次session 。 一些session相关的请求会被清除
         if (request.hdr != null && request.hdr.getType() == OpCode.closeSession) {
             ServerCnxnFactory scxn = zks.getServerCnxnFactory();
             // this might be possible since

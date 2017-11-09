@@ -177,7 +177,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
             zks.outstandingChangesForPath.put(c.path, c);//每个path 在一次请求中只能对应一个changeRecord。
         }                                                // 在进入处理逻辑的时候，前面的请求就已经接收完成。并且处理过程是单线程的
     }                                                    //所以在单个server上看，所有的zk更新工作就都是串行的。没有并发问题
-
+                                                         //这个只能保证第一个processor是串行的，后面的几个processor都是线程池处理，会有并发问题
     /**
      * Grab current pending change records for each op in a multi-op.
      * 

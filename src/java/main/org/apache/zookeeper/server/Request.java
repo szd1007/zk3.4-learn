@@ -122,7 +122,7 @@ public class Request {
             return false;
         }
     }
-
+    //这个比if else 判断语句好使啊  嘎嘎
     static boolean isQuorum(int type) {
         switch (type) {
         case OpCode.exists:
