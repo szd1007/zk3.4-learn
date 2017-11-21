@@ -96,8 +96,8 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
     LocalPeerBean jmxLocalPeerBean;
     LeaderElectionBean jmxLeaderElectionBean;
     QuorumCnxManager qcm;
-    QuorumAuthServer authServer;
-    QuorumAuthLearner authLearner;
+    QuorumAuthServer authServer;//skip
+    QuorumAuthLearner authLearner;//skip
     // VisibleForTesting. This flag is used to know whether qLearner's and
     // qServer's login context has been initialized as ApacheDS has concurrency
     // issues. Refer https://issues.apache.org/jira/browse/ZOOKEEPER-2712

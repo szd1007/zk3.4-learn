@@ -109,10 +109,10 @@ public class QuorumCnxManager {
     /*
      * Local IP address
      */
-    final long mySid;
+    final long mySid; //本机的sid
     final int socketTimeout;
-    final Map<Long, QuorumPeer.QuorumServer> view;
-    final boolean listenOnAllIPs;
+    final Map<Long, QuorumPeer.QuorumServer> view;//config 中取到
+    final boolean listenOnAllIPs;//这个值默认是false
     private ThreadPoolExecutor connectionExecutor;
     private final Set<Long> inprogressConnections = Collections
             .synchronizedSet(new HashSet<Long>());
