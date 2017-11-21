@@ -107,7 +107,7 @@ public class QuorumPeerMain {
                 .getSnapRetainCount(), config.getPurgeInterval());
         purgeMgr.start();
 
-        if (args.length == 1 && config.servers.size() > 0) {
+        if (args.length == 1 && config.servers.size() > 0) { //如果是集群配置的话，server肯定会有配置
             runFromConfig(config);
         } else {
             LOG.warn("Either no config or no quorum defined in config, running "
@@ -144,8 +144,8 @@ public class QuorumPeerMain {
           quorumPeer.setClientPortAddress(config.getClientPortAddress());
           quorumPeer.setMinSessionTimeout(config.getMinSessionTimeout());
           quorumPeer.setMaxSessionTimeout(config.getMaxSessionTimeout());
-          quorumPeer.setZKDatabase(new ZKDatabase(quorumPeer.getTxnFactory()));
-          quorumPeer.setLearnerType(config.getPeerType());
+          quorumPeer.setZKDatabase(new ZKDatabase(quorumPeer.getTxnFactory()));//构造对象的时候，zkDatabase已经生成了。为啥要再来一遍
+          quorumPeer.setLearnerType(config.getPeerType());//新增observer模式 不参与选主
           quorumPeer.setSyncEnabled(config.getSyncEnabled());
 
           // sets quorum sasl authentication configurations

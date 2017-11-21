@@ -71,7 +71,7 @@ import org.slf4j.LoggerFactory;
  * <li>Follower - the server will synchronize with the leader and replicate any
  * transactions.</li>
  * <li>Leader - the server will process requests and forward them to followers.
- * A majority of followers must log the request before it can be accepted.
+ * A majority of followers must log the request before it can be accepted. |log first
  * </ol>
  *
  * This class will setup a datagram socket that will always respond with its
@@ -163,7 +163,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
         public void recreateSocketAddresses() {
             InetAddress address = null;
             try {
-                address = InetAddress.getByName(this.hostname);
+                address = InetAddress.getByName(this.hostname);//hostname 可以是ip也可以是ip地址
                 LOG.info("Resolved hostname: {} to address: {}", this.hostname, address);
                 this.addr = new InetSocketAddress(address, this.port);
                 if (this.electionPort > 0){
