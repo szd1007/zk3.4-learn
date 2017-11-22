@@ -501,7 +501,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
         return state;
     }
 
-    DatagramSocket udpSocket;
+    DatagramSocket udpSocket;//deprecated
 
     private InetSocketAddress myQuorumAddr;
 
@@ -566,7 +566,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
 
     public void initialize() throws SaslException {
         // init quorum auth server & learner
-        if (isQuorumSaslAuthEnabled()) {
+        if (isQuorumSaslAuthEnabled()) {//false
             Set<String> authzHosts = new HashSet<String>();
             for (QuorumServer qs : getView().values()) {
                 authzHosts.add(qs.hostname);
@@ -673,7 +673,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
         if (myQuorumAddr == null) {
             throw new RuntimeException("My id " + myid + " not in the peer list");
         }
-        if (electionType == 0) {
+        if (electionType == 0) {//deprecated
             try {
                 udpSocket = new DatagramSocket(myQuorumAddr.getPort());
                 responder = new ResponderThread();
