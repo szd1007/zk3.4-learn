@@ -787,7 +787,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
             }
             break;
         default:
-            assert false;
+            assert false;//非法的选举算法type值
         }
         return le;
     }
