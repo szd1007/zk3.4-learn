@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
  * 
  * <b>NOTE</b>: on Windows platforms, it will not atomically replace the target
  * file - instead the target file is deleted before this one is moved into
- * place.
+ * place.            把本次输出流放到中间文件转储，等完成时全部一次性写入目标文件
  */
 public class AtomicFileOutputStream extends FilterOutputStream {
     private static final String TMP_EXTENSION = ".tmp";

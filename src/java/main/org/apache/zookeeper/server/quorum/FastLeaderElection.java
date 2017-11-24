@@ -812,8 +812,8 @@ public class FastLeaderElection implements Election {
 
             synchronized(this){
                 logicalclock++;
-                updateProposal(getInitId(), getInitLastLoggedZxid(), getPeerEpoch());
-            }
+                updateProposal(getInitId(), getInitLastLoggedZxid(), getPeerEpoch());//把自己作为leader
+            }                                                                        //参与选举
 
             LOG.info("New election. My id =  " + self.getId() +
                     ", proposed zxid=0x" + Long.toHexString(proposedZxid));

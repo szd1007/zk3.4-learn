@@ -604,7 +604,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
             long lastProcessedZxid = zkDb.getDataTree().lastProcessedZxid;
     		long epochOfZxid = ZxidUtils.getEpochFromZxid(lastProcessedZxid);
             try {
-            	currentEpoch = readLongFromFile(CURRENT_EPOCH_FILENAME);
+            	currentEpoch = readLongFromFile(CURRENT_EPOCH_FILENAME);//系统第一次启动时，通过出发fileNotFoundException来进行文件创建
                 if (epochOfZxid > currentEpoch && updating.exists()) {
                     LOG.info("{} found. The server was terminated after " +
                              "taking a snapshot but before updating current " +
@@ -1341,7 +1341,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
         try {
             bw.write(Long.toString(value));
             bw.flush();
-            
+
             out.flush();
         } catch (IOException e) {
             LOG.error("Failed to write new file " + file, e);
