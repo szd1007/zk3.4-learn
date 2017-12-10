@@ -212,7 +212,7 @@ public class FastLeaderElection implements Election {
     }
 
     LinkedBlockingQueue<ToSend> sendqueue;
-    LinkedBlockingQueue<Notification> recvqueue;
+    LinkedBlockingQueue<Notification> recvqueue;  //存储从qcnxManager中接收的response消息
 
     /**
      * Multi-threaded implementation of message handler. Messenger
@@ -243,7 +243,7 @@ public class FastLeaderElection implements Election {
                 Message response;
                 while (!stop) {
                     // Sleeps on receive
-                    try{
+                    try{//这个地方用的好，通过队列进行生产消费隔离。这边不用关心上游实现
                         response = manager.pollRecvQueue(3000, TimeUnit.MILLISECONDS);
                         if(response == null) continue;
 
@@ -253,9 +253,9 @@ public class FastLeaderElection implements Election {
                          * if a server is not a follower, then it must be
                          * an observer. If we ever have any other type of
                          * learner in the future, we'll have to change the
-                         * way we check for observers.
+                         * way we check for observers.  |sid : serverId
                          */
-                        if(!self.getVotingView().containsKey(response.sid)){
+                        if(!self.getVotingView().containsKey(response.sid)){ //接收到observer发送的信息。  直接由sendqueue处理
                             Vote current = self.getCurrentVote();
                             ToSend notmsg = new ToSend(ToSend.mType.notification,
                                     current.getId(),
@@ -312,7 +312,7 @@ public class FastLeaderElection implements Election {
                             n.state = ackstate;
                             n.sid = response.sid;
                             if(!backCompatibility){
-                                n.peerEpoch = response.buffer.getLong();
+                                n.peerEpoch = response.buffer.getLong(); //新版本 32bytes  增加peerEpoch 字段
                             } else {
                                 if(LOG.isInfoEnabled()){
                                     LOG.info("Backward compatibility mode, server id=" + n.sid);
@@ -338,17 +338,17 @@ public class FastLeaderElection implements Election {
                              * If this server is looking, then send proposed leader
                              */
 
-                            if(self.getPeerState() == QuorumPeer.ServerState.LOOKING){
+                            if(self.getPeerState() == QuorumPeer.ServerState.LOOKING){//投票自己是leader
                                 recvqueue.offer(n);
 
                                 /*
                                  * Send a notification back if the peer that sent this
                                  * message is also looking and its logical clock is
-                                 * lagging behind.
+                                 * lagging behind.  || 通知新一节选举轮数的节点，如果自己轮数已经落后或者在相同的轮数中，直接处理。不发送
                                  */
                                 if((ackstate == QuorumPeer.ServerState.LOOKING)
-                                        && (n.electionEpoch < logicalclock)){
-                                    Vote v = getVote();
+                                        && (n.electionEpoch < logicalclock)){ //logicalclock（本节点维持的electionEpoch）
+                                    Vote v = getVote();                       // 的作用？选举次数？？
                                     ToSend notmsg = new ToSend(ToSend.mType.notification,
                                             v.getId(),
                                             v.getZxid(),
@@ -359,11 +359,11 @@ public class FastLeaderElection implements Election {
                                     sendqueue.offer(notmsg);
                                 }
                             } else {
-                                /*
+                                /*  |server not looking 。process logic
                                  * If this server is not looking, but the one that sent the ack
                                  * is looking, then send back what it believes to be the leader.
                                  */
-                                Vote current = self.getCurrentVote();
+                                Vote current = self.getCurrentVote();//本机server知道谁是leader，发送给looking的ip
                                 if(ackstate == QuorumPeer.ServerState.LOOKING){
                                     if(LOG.isDebugEnabled()){
                                         LOG.debug("Sending new notification. My id =  " +
@@ -644,7 +644,7 @@ public class FastLeaderElection implements Election {
 
         /*
          * First make the views consistent. Sometimes peers will have
-         * different zxids for a server depending on timing.
+         * different zxids for a ser~ver depending on timing.
          */
         for (Map.Entry<Long,Vote> entry : votes.entrySet()) {
             if (vote.equals(entry.getValue())){
@@ -860,7 +860,7 @@ public class FastLeaderElection implements Election {
                     case LOOKING:
                         // If notification > current, replace and send messages out
                         if (n.electionEpoch > logicalclock) {
-                            logicalclock = n.electionEpoch;
+                            logicalclock = n.electionEpoch;// logicalclock
                             recvset.clear();
                             if(totalOrderPredicate(n.leader, n.zxid, n.peerEpoch,
                                     getInitId(), getInitLastLoggedZxid(), getPeerEpoch())) {
